@@ -1,0 +1,274 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model assigned_subject {
+  iCod_Assigned_Subject Int @id @default(autoincrement())
+  i_TotalHours          Int
+
+  // Foreign Keys
+  subject        subject @relation(fields: [fkiCod_Subject], references: [iCod_Subject])
+  fkiCod_Subject Int
+  users          users   @relation(fields: [fkiCod_User], references: [iCod_User])
+  fkiCod_User    Int
+
+  // Calls for Foreign Keys
+  schedule schedule[]
+
+  dt_Created_Assigned_Subject DateTime @default(now())
+  dt_Updated_Assigned_Subject DateTime @default(now())
+  b_State_Assigned_Subject    Boolean  @default(true)
+}
+
+model career {
+  iCod_Career   Int    @id @default(autoincrement())
+  s_Name_Career String
+
+  // Foreign Keys
+  faculty        faculty @relation(fields: [fkiCod_Faculty], references: [iCod_Faculty])
+  fkiCod_Faculty Int
+  users          users   @relation(fields: [fkiCod_User], references: [iCod_User])
+  fkiCod_User    Int
+
+  dt_Created_Career DateTime @default(now())
+  dt_Updated_Career DateTime @default(now())
+  b_State_Career    Boolean  @default(true)
+}
+
+model classroom {
+  iCod_Classroom   Int    @id @default(autoincrement())
+  s_Name_Classroom String
+
+  // Foreign Keys
+  grades        grades @relation(fields: [fkiCod_Grades], references: [iCod_Grades])
+  fkiCod_Grades Int
+  groups        groups @relation(fields: [fkiCod_Groups], references: [iCod_Groups])
+  fkiCod_Groups Int
+
+  // Calls for Foreign Keys
+  issues issues[]
+
+  dt_Created_Classroom DateTime @default(now())
+  dt_Updated_Classroom DateTime @default(now())
+  b_State_Classroom    Boolean  @default(true)
+}
+
+model cycle {
+  iCod_Cycle   Int    @id @default(autoincrement())
+  s_Name_Cycle String
+
+  // Calls for Foreign Keys
+  schedule schedule[]
+
+  dt_Created_Cycles DateTime @default(now())
+  dt_Updated_Cycles DateTime @default(now())
+  b_State_Cycles    Boolean  @default(true)
+}
+
+model grades {
+  iCod_Grades   Int    @id @default(autoincrement())
+  s_Name_Grades String
+
+  // Calls for Foreign Keys
+  classroom classroom[]
+
+  dt_Created_Grades DateTime @default(now())
+  dt_Updated_Grades DateTime @default(now())
+  b_State_Grades    Boolean  @default(true)
+}
+
+model groups {
+  iCod_Groups   Int    @id @default(autoincrement())
+  s_Name_Groups String
+
+  // Calls for Foreign keys
+  classroom classroom[]
+
+  dt_Created_Groups DateTime @default(now())
+  dt_Updated_Groups DateTime @default(now())
+  b_State_Groups    Boolean  @default(true)
+}
+
+model issues {
+  iCod_Issues         Int        @id @default(autoincrement())
+  s_Issue_Description String
+  dt_Date_Time        DateTime
+  e_State_Review      mode_issue @default(Open)
+
+  // Foreign Keys
+  type_issues          type_issues @relation(fields: [fkiCod_Type_Issues], references: [iCod_Type_Issue])
+  fkiCod_Type_Issues   Int
+  classroom            classroom   @relation(fields: [fkiCod_Classroom], references: [iCod_Classroom])
+  fkiCod_Classroom     Int
+  severity             severity    @relation(fields: [fkiCod_Severity], references: [iCod_Severity])
+  fkiCod_Severity      Int
+  user_register        users       @relation("UserRegister", fields: [fkiCod_User_Register], references: [iCod_User])
+  fkiCod_User_Register Int
+  user_reviewer        users       @relation("UserReviewer", fields: [fkiCod_User_Reviewer], references: [iCod_User])
+  fkiCod_User_Reviewer Int
+
+  // Calls for Foreign Keys
+  causing_affecteds causing_users[]
+  users_affecters   users_affecters[]
+
+  dt_Created_Issues DateTime @default(now())
+  dt_Updated_Issues DateTime @default(now())
+  b_State_Issues    Boolean  @default(true)
+}
+
+enum mode_issue {
+  Open
+  InProgress
+  Complete
+}
+
+model schedule {
+  iCod_Schedule Int      @id @default(autoincrement())
+  i_Total_Hours Int
+  t_Star_Hours  DateTime
+  t_End_Hours   DateTime
+
+  // Foreign Keys
+  cycle                   cycle            @relation(fields: [fkiCod_Cycle], references: [iCod_Cycle])
+  fkiCod_Cycle            Int
+  assigned_subject        assigned_subject @relation(fields: [fkiCod_Assigned_Subject], references: [iCod_Assigned_Subject])
+  fkiCod_Assigned_Subject Int
+
+  dt_Created_Schedule DateTime @default(now())
+  dt_Updated_Schedule DateTime @default(now())
+  b_State_Schedule    Boolean  @default(true)
+}
+
+model faculty {
+  iCod_Faculty   Int    @id @default(autoincrement())
+  s_Name_Faculty String
+
+  // Calls for Foreign Keys
+  career career[]
+
+  dt_Created_Faculty DateTime @default(now())
+  dt_Updated_Faculty DateTime @default(now())
+  b_State_Faculty    Boolean  @default(true)
+}
+
+model severity {
+  iCod_Severity   Int    @id @default(autoincrement())
+  s_Name_Severity String
+
+  // Calls for Foreign Keys
+  issues issues[]
+
+  dt_Created_Severity DateTime @default(now())
+  dt_Updated_Severity DateTime @default(now())
+  b_State_Severity    Boolean  @default(true)
+}
+
+model subject {
+  iCod_Subject   Int    @id @default(autoincrement())
+  s_Name_Subject String
+
+  // Call for foreign key
+  assigned_Subject assigned_subject[]
+
+  dt_Created_Subject DateTime @default(now())
+  dt_Updated_Subject DateTime @default(now())
+  b_State_Subject    Boolean  @default(true)
+}
+
+model type_classroom {
+  iCod_Type_Classroom   Int    @id @default(autoincrement())
+  s_Name_Type_Classroom String
+
+  dt_Created_Type_Classroom DateTime @default(now())
+  dt_Updated_Type_Classroom DateTime @default(now())
+  b_State_Type_Classroom    Boolean  @default(true)
+}
+
+model type_issues {
+  iCod_Type_Issue          Int    @id @default(autoincrement())
+  s_Name_Type_Issue        String
+  s_Description_Type_Issue String
+
+  // Calls for Foreign keys
+  issues issues[]
+
+  dt_Created_Type_Issue DateTime @default(now())
+  dt_Updated_Type_Issue DateTime @default(now())
+  b_State_Type_Issue    Boolean  @default(true)
+}
+
+model type_users {
+  iCod_Type_User   Int    @id @default(autoincrement())
+  s_Name_Type_User String @unique
+
+  // Llamado del dato a users
+  users users[]
+
+  dt_Created_Type_User DateTime @default(now())
+  dt_Updated_Type_User DateTime @default(now())
+  b_State_Type_User    Boolean  @default(true)
+}
+
+model users {
+  iCod_User             Int    @id @default(autoincrement())
+  s_Full_Name_User      String
+  i_Enrollment_Number   Int    @default(00000000)
+  s_Password            String
+  s_Gender              String
+  i_Age                 Int
+  s_Institutional_Email String
+  s_Phone_Number        String
+
+  // Foreign Keys
+  type_users      type_users @relation(fields: [fkiCod_TypeUser], references: [iCod_Type_User])
+  fkiCod_TypeUser Int
+
+  // Calls for foreign keys
+  assigned_subject assigned_subject[]
+  career           career[]
+  issues_register  issues[]           @relation("UserRegister")
+  issues_reviewer  issues[]           @relation("UserReviewer")
+  causing_users    causing_users[]
+  users_affected   users_affecters[]
+
+  dt_Created_User DateTime @default(now())
+  dt_Updated_User DateTime @default(now())
+  b_State_User    Boolean  @default(true)
+}
+
+model causing_users {
+
+  // Foreign Keys
+  users         users  @relation(fields: [fkiCod_Users], references: [iCod_User])
+  fkiCod_Users  Int
+  issues        issues @relation(fields: [fkiCod_Issues], references: [iCod_Issues])
+  fkiCod_Issues Int
+
+  dt_Created_Causing_Users DateTime @default(now())
+
+  @@unique([fkiCod_Issues, fkiCod_Users]) // Composite Key
+}
+
+model users_affecters {
+
+  // Foreign Keys
+  users         users  @relation(fields: [fkiCod_Users], references: [iCod_User])
+  fkiCod_Users  Int
+  issues        issues @relation(fields: [fkiCod_Issues], references: [iCod_Issues])
+  fkiCod_Issues Int
+
+  dt_Created_Users_Affecters DateTime @default(now())
+
+  @@unique([fkiCod_Issues, fkiCod_Users]) // Composite Key
+}
