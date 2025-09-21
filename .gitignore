@@ -1,5 +1,11 @@
-PracticasApi/node_modules/
 imgs/
 .vscode/
+
 PracticasApi/.env
+PracticasApi/node_modules/
+
+PracticasPrisma/.env
+PracticasPrisma/generated/prisma
+PracticasPrisma/node_modules
+
 .log
