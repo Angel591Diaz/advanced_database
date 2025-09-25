@@ -121,6 +121,7 @@ model issues {
   // Calls for Foreign Keys
   causing_affecteds causing_users[]
   users_affecters   users_affecters[]
+  issues_description_history issues_description_history[]
 
   dt_Created_Issues DateTime @default(now())
   dt_Updated_Issues DateTime @default(now())
@@ -229,6 +230,7 @@ model users {
   i_Age                 Int
   s_Institutional_Email String
   s_Phone_Number        String
+  i_Issues_Count        Int   @default(0)
 
   // Foreign Keys
   type_users      type_users @relation(fields: [fkiCod_TypeUser], references: [iCod_Type_User])
@@ -271,4 +273,47 @@ model users_affecters {
   dt_Created_Users_Affecters DateTime @default(now())
 
   @@unique([fkiCod_Issues, fkiCod_Users]) // Composite Key
+}
+
+// angel591diaz/advanced_database/advanced_database-041fc51fd9fcd6f9c86664b346cd7d19cc13f3d6/PracticasPrisma/prisma/schema.prisma
+
+// --- AÑADE ESTOS NUEVOS MODELOS AL FINAL DE TU ARCHIVO ---
+
+// Tabla para registrar logs de inserciones y actualizaciones
+model issues_logs {
+  iCod_Log      Int      @id @default(autoincrement())
+  fkiCod_Issue  Int
+  s_Action      String // Ej: 'INSERT', 'UPDATE'
+  s_Field       String?  // Campo que cambió
+  s_Old_Value   String?  // Valor antiguo
+  s_New_Value   String?  // Valor nuevo
+  dt_Log_Date   DateTime @default(now())
+}
+
+// Tabla para guardar un backup de las incidencias eliminadas
+model issues_backup {
+  iCod_Issues         Int      @id @default(autoincrement())
+  s_Issue_Description String
+  dt_Date_Time        DateTime
+  e_State_Review      String   // Usamos String en lugar de Enum para simplicidad en el backup
+  fkiCod_Type_Issues  Int
+  fkiCod_Classroom    Int
+  fkiCod_Severity     Int
+  fkiCod_User_Register Int
+  fkiCod_User_Reviewer Int
+  dt_Created_Issues   DateTime
+  dt_Updated_Issues   DateTime
+  b_State_Issues      Boolean
+  dt_Deleted_Date     DateTime @default(now()) // Fecha de eliminación
+}
+
+// Tabla para el historial de cambios en la descripción de una incidencia
+model issues_description_history {
+  iCod_History      Int      @id @default(autoincrement())
+  fkiCod_Issue      Int
+  s_Old_Description String
+  dt_Changed_At     DateTime @default(now())
+
+  // Relación opcional con la tabla de issues
+  issue issues @relation(fields: [fkiCod_Issue], references: [iCod_Issues])
 }
