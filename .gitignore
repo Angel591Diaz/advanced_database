@@ -4,8 +4,15 @@ imgs/
 PracticasApi/.env
 PracticasApi/node_modules/
 
+PracticasApiV2/.env
+PracticasApiV2/node_modules/
+
 PracticasPrisma/.env
 PracticasPrisma/generated/prisma
 PracticasPrisma/node_modules
+
+PracticasPrismaV2/.env
+PracticasPrismaV2/generated/prisma
+PracticasPrismaV2/node_modules
 
 .log

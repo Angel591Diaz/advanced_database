@@ -1,0 +1,314 @@
+// This is your Prisma schema file for the Digital Library,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// --- 1. AREA: USER AND PERMISSION MANAGEMENT ---
+
+model Users {
+  userID       Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  dateCreated  DateTime @default(now())
+  dateUpdated  DateTime @updatedAt
+
+  // Foreign Keys & Relations
+  userStatus   UserStatuses @relation(fields: [userStatusID], references: [userStatusID])
+  userStatusID Int
+
+  // Calls for relations
+  details       UserDetails?
+  userRoles     UserRoles[]
+  addresses     UserAddresses[]
+  contactInfos  ContactInfo[]
+  loans         Loans[]
+  reservations  Reservations[]
+  logs          Logs[]
+}
+
+model UserDetails {
+  userID      Int     @id
+  firstName   String
+  lastName    String
+  dateOfBirth DateTime?
+
+  // 1-to-1 relation with Users
+  user Users @relation(fields: [userID], references: [userID])
+}
+
+model UserStatuses {
+  userStatusID Int    @id @default(autoincrement())
+  statusName   String @unique // "Active", "Suspended", "Inactive"
+
+  users Users[]
+}
+
+model Roles {
+  roleID   Int    @id @default(autoincrement())
+  roleName String @unique // "Administrator", "Librarian", "Student"
+
+  userRoles       UserRoles[]
+  rolePermissions RolePermissions[]
+}
+
+model UserRoles {
+  // Composite Primary Key
+  @@id([userID, roleID])
+
+  // Foreign Keys & Relations
+  user   Users @relation(fields: [userID], references: [userID])
+  userID Int
+  role   Roles @relation(fields: [roleID], references: [roleID])
+  roleID Int
+}
+
+model Permissions {
+  permissionID   Int    @id @default(autoincrement())
+  permissionName String @unique // "create_book", "delete_user"
+
+  rolePermissions RolePermissions[]
+}
+
+model RolePermissions {
+  // Composite Primary Key
+  @@id([roleID, permissionID])
+
+  // Foreign Keys & Relations
+  role         Roles       @relation(fields: [roleID], references: [roleID])
+  roleID       Int
+  permission   Permissions @relation(fields: [permissionID], references: [permissionID])
+  permissionID Int
+}
+
+model Addresses {
+  addressID Int    @id @default(autoincrement())
+  street    String
+  city      String
+  state     String
+  zipCode   String
+
+  userAddresses UserAddresses[]
+}
+
+model UserAddresses {
+  // Composite Primary Key
+  @@id([userID, addressID])
+
+  addressType String // "Home", "Work"
+
+  // Foreign Keys & Relations
+  user      Users     @relation(fields: [userID], references: [userID])
+  userID    Int
+  address   Addresses @relation(fields: [addressID], references: [addressID])
+  addressID Int
+}
+
+model ContactInfo {
+  contactID    Int    @id @default(autoincrement())
+  contactType  String // "Email", "Phone"
+  contactValue String
+
+  // Foreign Keys & Relations
+  user   Users @relation(fields: [userID], references: [userID])
+  userID Int
+}
+
+
+// --- 2. AREA: BOOK CATALOG ---
+
+model Books {
+  bookID          Int      @id @default(autoincrement())
+  title           String
+  isbn            String   @unique
+  publicationYear Int
+  dateCreated     DateTime @default(now())
+  dateUpdated     DateTime @updatedAt
+
+  // Foreign Keys & Relations
+  publisher   Publishers @relation(fields: [publisherID], references: [publisherID])
+  publisherID Int
+  language    Languages  @relation(fields: [languageID], references: [languageID])
+  languageID  Int
+
+  // Calls for relations
+  copies         BookCopies[]
+  bookAuthors    BookAuthors[]
+  bookCategories BookCategories[]
+  bookFormats    BookFormats[]
+  reservations   Reservations[]
+}
+
+model BookCopies {
+  copyID        Int      @id @default(autoincrement())
+  acquisitionDate DateTime @default(now())
+
+  // Foreign Keys & Relations
+  book         Books        @relation(fields: [bookID], references: [bookID])
+  bookID       Int
+  copyStatus   CopyStatuses @relation(fields: [copyStatusID], references: [copyStatusID])
+  copyStatusID Int
+
+  // Calls for relations
+  loans Loans[]
+}
+
+model CopyStatuses {
+  copyStatusID Int    @id @default(autoincrement())
+  statusName   String @unique // "Available", "On Loan", "In Maintenance"
+
+  copies BookCopies[]
+}
+
+model Authors {
+  authorID  Int     @id @default(autoincrement())
+  firstName String
+  lastName  String
+  birthDate DateTime?
+
+  bookAuthors BookAuthors[]
+}
+
+model BookAuthors {
+  // Composite Primary Key
+  @@id([bookID, authorID])
+
+  // Foreign Keys & Relations
+  book     Books   @relation(fields: [bookID], references: [bookID])
+  bookID   Int
+  author   Authors @relation(fields: [authorID], references: [authorID])
+  authorID Int
+}
+
+model Publishers {
+  publisherID   Int    @id @default(autoincrement())
+  publisherName String @unique
+  country       String
+
+  books Books[]
+}
+
+model Categories {
+  categoryID   Int    @id @default(autoincrement())
+  categoryName String @unique // "Science Fiction", "History"
+
+  bookCategories BookCategories[]
+}
+
+model BookCategories {
+  // Composite Primary Key
+  @@id([bookID, categoryID])
+
+  // Foreign Keys & Relations
+  book       Books      @relation(fields: [bookID], references: [bookID])
+  bookID     Int
+  category   Categories @relation(fields: [categoryID], references: [categoryID])
+  categoryID Int
+}
+
+model Languages {
+  languageID   Int    @id @default(autoincrement())
+  languageName String @unique // "Spanish", "English"
+
+  books Books[]
+}
+
+model Formats {
+  formatID   Int    @id @default(autoincrement())
+  formatName String @unique // "eBook", "PDF", "Audiobook"
+
+  bookFormats BookFormats[]
+}
+
+model BookFormats {
+  // Composite Primary Key
+  @@id([bookID, formatID])
+
+  // Foreign Keys & Relations
+  book     Books   @relation(fields: [bookID], references: [bookID])
+  bookID   Int
+  format   Formats @relation(fields: [formatID], references: [formatID])
+  formatID Int
+}
+
+
+// --- 3. AREA: TRANSACTIONS (LOANS, FINES, RESERVATIONS) ---
+
+model Loans {
+  loanID      Int       @id @default(autoincrement())
+  loanDate    DateTime  @default(now())
+  dueDate     DateTime
+  returnDate  DateTime?
+
+  // Foreign Keys & Relations
+  copy         BookCopies   @relation(fields: [copyID], references: [copyID])
+  copyID       Int
+  user         Users        @relation(fields: [userID], references: [userID])
+  userID       Int
+  loanStatus   LoanStatuses @relation(fields: [loanStatusID], references: [loanStatusID])
+  loanStatusID Int
+
+  // Calls for relations
+  fines Fines[]
+}
+
+model LoanStatuses {
+  loanStatusID Int    @id @default(autoincrement())
+  statusName   String @unique // "Active", "Returned", "Overdue"
+
+  loans Loans[]
+}
+
+model Fines {
+  fineID        Int      @id @default(autoincrement())
+  fineAmount    Float
+  fineDate      DateTime @default(now())
+  paymentStatus String   // "Pending", "Paid"
+
+  // Foreign Keys & Relations
+  loan   Loans @relation(fields: [loanID], references: [loanID])
+  loanID Int
+}
+
+model Reservations {
+  reservationID   Int      @id @default(autoincrement())
+  reservationDate DateTime @default(now())
+  status          String   // "Active", "Cancelled", "Fulfilled"
+
+  // Foreign Keys & Relations
+  book   Books @relation(fields: [bookID], references: [bookID])
+  bookID Int
+  user   Users @relation(fields: [userID], references: [userID])
+  userID Int
+}
+
+
+// --- 4. AREA: AUDITING AND SYSTEM ---
+
+model Logs {
+  logID       Int      @id @default(autoincrement())
+  tableName   String
+  recordID    Int
+  action      String   // "INSERT", "UPDATE", "DELETE"
+  details     String?  @db.Text
+  timestamp   DateTime @default(now())
+
+  // Foreign Keys & Relations
+  logType   LogTypes @relation(fields: [logTypeID], references: [logTypeID])
+  logTypeID Int
+  user      Users?   @relation(fields: [userID], references: [userID])
+  userID    Int?
+}
+
+model LogTypes {
+  logTypeID Int    @id @default(autoincrement())
+  typeName  String @unique // "CRUD_Loan", "User_Login", "System_Error"
+
+  logs Logs[]
+}
